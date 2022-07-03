@@ -62,6 +62,8 @@ def check_response(response):
     должна вернуть список домашних работ (он может быть и пустым),
     доступный в ответе API по ключу 'homeworks'.
     """
+    if type(response) != dict:
+        raise Exception('Ответ не является словарем')
     if 'homeworks' not in response:
         raise Exception('Нет данных о домашних работах')
     if type(response['homeworks']) != list:
