@@ -49,6 +49,8 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+    if response.status_code != 200:
+        raise Exception(f'Ошибка при запросе к API: {response.status_code}')
     return response.json()
 
 
@@ -62,6 +64,8 @@ def check_response(response):
     """
     if 'homeworks' not in response:
         raise Exception('Нет данных о домашних работах')
+    if type(response['homeworks']) != list:
+        raise Exception('Неверный формат данных о домашних работах')
     return response['homeworks']
 
 
