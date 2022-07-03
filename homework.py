@@ -63,7 +63,13 @@ def check_response(response):
     доступный в ответе API по ключу 'homeworks'.
     """
     if type(response) != dict:
-        raise Exception('Ответ не является словарем')
+        if type(response) == list:
+            if 'homeworks' in response:
+                result = next((x for x in response if type(x) == dict and 'homeworks' in x), None)
+                if not result:
+                    raise Exception('Ответ API не содержит домашних работ')
+                return result['homeworks']
+        raise Exception('Ответ API не содержит homeworks или он не является списком')
     if 'homeworks' not in response:
         raise Exception('Нет данных о домашних работах')
     if type(response['homeworks']) != list:
