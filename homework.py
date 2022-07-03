@@ -64,19 +64,16 @@ def check_response(response):
     """
     if not isinstance(response, dict):
         if isinstance(response, list):
-            if 'homeworks' in response:
-                result = next(
-                    (x for x in response if isinstance(
-                        x, dict) and 'homeworks' in x), None)
-                if not result:
-                    raise Exception('Ответ API не содержит домашних работ')
-                return result['homeworks']
-        raise Exception(
-            'Ответ API не содержит homeworks или он не является списком')
+            result = next(
+                (x for x in response if isinstance(
+                    x, dict) and 'homeworks' in x), None)
+            if not result:
+                raise ValueError('Ответ API не содержит домашних работ')
+            return result['homeworks']
+        raise TypeError(
+            'Ответ API не является ни списком ни словарем')
     if 'homeworks' not in response:
-        raise Exception('Нет данных о домашних работах')
-    if not isinstance(response['homeworks'], list):
-        raise Exception('Неверный формат данных о домашних работах')
+        raise ValueError('Словарь с ответом не содержит')
     return response['homeworks']
 
 
