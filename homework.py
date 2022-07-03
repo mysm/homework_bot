@@ -62,17 +62,20 @@ def check_response(response):
     должна вернуть список домашних работ (он может быть и пустым),
     доступный в ответе API по ключу 'homeworks'.
     """
-    if type(response) != dict:
-        if type(response) == list:
+    if not isinstance(response, dict):
+        if isinstance(response, list):
             if 'homeworks' in response:
-                result = next((x for x in response if type(x) == dict and 'homeworks' in x), None)
+                result = next(
+                    (x for x in response if isinstance(
+                        x, dict) and 'homeworks' in x), None)
                 if not result:
                     raise Exception('Ответ API не содержит домашних работ')
                 return result['homeworks']
-        raise Exception('Ответ API не содержит homeworks или он не является списком')
+        raise Exception(
+            'Ответ API не содержит homeworks или он не является списком')
     if 'homeworks' not in response:
         raise Exception('Нет данных о домашних работах')
-    if type(response['homeworks']) != list:
+    if not isinstance(response['homeworks'], list):
         raise Exception('Неверный формат данных о домашних работах')
     return response['homeworks']
 
@@ -94,8 +97,8 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверяет доступность переменных окружения.
-    Которые необходимых для работы программы.
+    """Проверяет доступность переменных окружения. Которые необходимых для
+    работы программы.
 
     Если отсутствует хотя бы одна переменная окружения — функция должна
     вернуть False, иначе — True.
