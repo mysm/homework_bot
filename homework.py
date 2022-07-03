@@ -69,11 +69,15 @@ def check_response(response):
                     x, dict) and 'homeworks' in x), None)
             if not result:
                 raise ValueError('Ответ API не содержит домашних работ')
+            if type(result['homeworks']) != list:
+                raise TypeError('Словарь с ответом не содержит списка')
             return result['homeworks']
         raise TypeError(
             'Ответ API не является ни списком ни словарем')
     if 'homeworks' not in response:
         raise ValueError('Словарь с ответом не содержит')
+    if type(response['homeworks']) != list:
+        raise TypeError('Словарь с ответом не содержит списка')
     return response['homeworks']
 
 
