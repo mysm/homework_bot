@@ -77,11 +77,11 @@ def check_response(response: dict) -> list:
     должна вернуть список домашних работ (он может быть и пустым),
     доступный в ответе API по ключу 'homeworks'.
     """
-    if response is dict:
+    if response is not dict:
         raise TypeError('Ответ API не является словарем')
     if 'homeworks' not in response:
         raise ValueError('Словарь с ответом не содержит ключа "homeworks"')
-    if not response['homeworks'] is list:
+    if response['homeworks'] is not list:
         raise TypeError('Словарь с ответом не содержит списка')
     return response['homeworks']
 
