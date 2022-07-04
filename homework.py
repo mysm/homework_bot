@@ -90,7 +90,7 @@ def check_response(response: [dict, list]) -> list:
     if not result:
         raise ValueError('Ответ API не содержит домашних работ')
     if 'homeworks' not in result:
-        raise ValueError('Словарь с ответом не содержит ключа "homeworks"')
+        raise KeyError('Словарь с ответом не содержит ключа "homeworks"')
     if not isinstance(result['homeworks'], list):
         raise TypeError('Словарь с ответом не содержит списка')
     return result['homeworks']
@@ -107,7 +107,7 @@ def parse_status(homework: dict) -> str:
     homework_name = homework.get('homework_name', '')
     homework_status = homework.get('status', '')
     if homework_status not in HOMEWORK_STATUSES:
-        raise ValueError(f'Неизвестный статус работы: {homework_status}')
+        raise KeyError(f'Неизвестный статус работы: {homework_status}')
     verdict = HOMEWORK_STATUSES[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
