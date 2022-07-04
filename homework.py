@@ -69,7 +69,7 @@ def get_api_answer(current_timestamp: int) -> [dict, None]:
     return result
 
 
-def check_response(response: dict) -> list:
+def check_response(response: [dict, list]) -> list:
     """Проверяет ответ API на корректность.
 
     В качестве параметра функция получает ответ API, приведенный к типам
@@ -78,24 +78,22 @@ def check_response(response: dict) -> list:
     доступный в ответе API по ключу 'homeworks'.
     """
     if not isinstance(response, dict):
-        """#if isinstance(response, list):.
-
-        #    result = next(
-        #        (x for x in response if isinstance(
-        #            x, dict) and 'homeworks' in x), None)
-        #else:
-        """
-        raise TypeError('Ответ API не является ни словарем, ни списком')
+        if isinstance(response, list):
+            result = next(
+                (x for x in response if isinstance(
+                    x, dict) and 'homeworks' in x), None)
+        else:
+            raise TypeError('Ответ API не является ни словарем, ни списком')
     else:
-        result = response.get('homeworks', None)
+        result = response
 
     if not result:
         raise ValueError('Ответ API не содержит домашних работ')
     if 'homeworks' not in result:
         raise ValueError('Словарь с ответом не содержит ключа "homeworks"')
-    if result is not list:
+    if result['homeworks'] is not list:
         raise TypeError('Словарь с ответом не содержит списка')
-    return result
+    return result['homeworks']
 
 
 def parse_status(homework: dict) -> str:
