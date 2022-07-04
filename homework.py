@@ -78,11 +78,13 @@ def check_response(response: dict) -> list:
     доступный в ответе API по ключу 'homeworks'.
     """
     if not isinstance(response, dict):
-        #if isinstance(response, list):
+        """#if isinstance(response, list):.
+
         #    result = next(
         #        (x for x in response if isinstance(
         #            x, dict) and 'homeworks' in x), None)
         #else:
+        """
         raise TypeError('Ответ API не является ни словарем, ни списком')
     else:
         result = response.get('homeworks', None)
