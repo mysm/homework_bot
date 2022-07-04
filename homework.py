@@ -91,7 +91,7 @@ def check_response(response: [dict, list]) -> list:
         raise ValueError('Ответ API не содержит домашних работ')
     if 'homeworks' not in result:
         raise ValueError('Словарь с ответом не содержит ключа "homeworks"')
-    if result['homeworks'] is not list:
+    if not isinstance(result['homeworks'], list):
         raise TypeError('Словарь с ответом не содержит списка')
     return result['homeworks']
 
