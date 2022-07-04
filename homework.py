@@ -82,6 +82,8 @@ def check_response(response: [dict, list]) -> list:
             result = next(
                 (x for x in response if x is dict and 'homeworks' in x), None)
         else:
+            print(type(response))
+            print(response)
             raise TypeError('Ответ API не является ни словарем, ни списком')
     else:
         result = response.get('homeworks', None)
