@@ -57,7 +57,7 @@ def get_api_answer(current_timestamp: int) -> [dict, None]:
     except requests.exceptions.RequestException as e:
         logger.error(e)
         return None
-    if response != requests.codes.ok:
+    if response.status_code != requests.codes.ok:
         error = f'Ошибка при получении ответа от API: {response.status_code}'
         logger.error(error)
         raise requests.exceptions.HTTPError(error)
