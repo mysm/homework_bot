@@ -1,7 +1,8 @@
 import os
 import sys
-import requests
 import time
+import requests
+import json
 import telegram
 from dotenv import load_dotenv
 import logging
@@ -35,11 +36,14 @@ HOMEWORK_STATUSES = {
 
 def send_message(bot, message):
     """Отправляет сообщение в телеграм."""
-    bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-    logger.info(f'Удачная отправка сообщения: {message}')
+    try:
+        bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+        logger.info(f'Удачная отправка сообщения: {message}')
+    except telegram.error.TelegramError as e:
+        logger.error(e)
 
 
-def get_api_answer(current_timestamp):
+def get_api_answer(current_timestamp: int) -> [dict, None]:
     """Делает запрос к единственному эндпоинту API-сервиса.
 
     В качестве параметра функция получает временную метку. В случае
@@ -48,13 +52,24 @@ def get_api_answer(current_timestamp):
     """
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
-    response = requests.get(ENDPOINT, headers=HEADERS, params=params)
-    if response.status_code != 200:
-        raise Exception(f'Ошибка при запросе к API: {response.status_code}')
-    return response.json()
+    try:
+        response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+    except requests.exceptions.RequestException as e:
+        logger.error(e)
+        return None
+    if response != requests.codes.ok:
+        error = f'Ошибка при получении ответа от API: {response.status_code}'
+        logger.error(error)
+        raise requests.exceptions.HTTPError(error)
+    try:
+        result = response.json()
+    except json.decoder.JSONDecodeError as e:
+        logger.error(e)
+        return None
+    return result
 
 
-def check_response(response):
+def check_response(response: dict) -> list:
     """Проверяет ответ API на корректность.
 
     В качестве параметра функция получает ответ API, приведенный к типам
@@ -62,26 +77,16 @@ def check_response(response):
     должна вернуть список домашних работ (он может быть и пустым),
     доступный в ответе API по ключу 'homeworks'.
     """
-    if not isinstance(response, dict):
-        if isinstance(response, list):
-            result = next(
-                (x for x in response if isinstance(
-                    x, dict) and 'homeworks' in x), None)
-            if not result:
-                raise ValueError('Ответ API не содержит домашних работ')
-            if type(result['homeworks']) != list:
-                raise TypeError('Словарь с ответом не содержит списка')
-            return result['homeworks']
-        raise TypeError(
-            'Ответ API не является ни списком ни словарем')
+    if response is dict:
+        raise TypeError('Ответ API не является словарем')
     if 'homeworks' not in response:
-        raise ValueError('Словарь с ответом не содержит')
-    if type(response['homeworks']) != list:
+        raise ValueError('Словарь с ответом не содержит ключа "homeworks"')
+    if not response['homeworks'] is list:
         raise TypeError('Словарь с ответом не содержит списка')
     return response['homeworks']
 
 
-def parse_status(homework):
+def parse_status(homework: dict) -> str:
     """Извлекает из информации о конкретной домашней работе статус этой работы.
 
     В качестве параметра функция получает только один элемент из списка
@@ -89,20 +94,19 @@ def parse_status(homework):
     для отправки в Telegram строку, содержащую один из вердиктов словаря
     HOMEWORK_STATUSES.
     """
-    homework_name = homework['homework_name']
-    status = homework['status']
-    if status not in HOMEWORK_STATUSES:
-        raise Exception(f'Неизвестный статус {status}')
-    verdict = HOMEWORK_STATUSES[status]
+    homework_name = homework.get('homework_name', '')
+    homework_status = homework.get('status', '')
+    if homework_status not in HOMEWORK_STATUSES:
+        raise ValueError(f'Неизвестный статус работы: {homework_status}')
+    verdict = HOMEWORK_STATUSES[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
-def check_tokens():
+def check_tokens() -> bool:
     """Проверяет доступность переменных окружения.
-    Которые необходимых для работы программы.
 
-    Если отсутствует хотя бы одна переменная окружения — функция должна
-    вернуть False, иначе — True.
+    Если отсутствует хотя бы одна переменная окружения — функция
+    возвращает False, иначе — True.
     """
     if not PRACTICUM_TOKEN:
         logger.error('Не задан практикум-токен')
@@ -118,9 +122,10 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
-    logging.info('Начало работы')
+    logger.info('Начало работы')
 
     if not check_tokens():
+        logger.error('Отсутствуют необходимые переменные окружения')
         return
 
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
@@ -129,6 +134,8 @@ def main():
     while True:
         try:
             response = get_api_answer(current_timestamp)
+            if not response:
+                continue
             homeworks = check_response(response)
 
             for homework in homeworks:
