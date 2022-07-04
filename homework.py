@@ -77,13 +77,11 @@ def check_response(response: [dict, list]) -> list:
     должна вернуть список домашних работ (он может быть и пустым),
     доступный в ответе API по ключу 'homeworks'.
     """
-    if response is not dict:
-        if response is list:
+    if not isinstance(response, dict):
+        if isinstance(response, list):
             result = next(
                 (x for x in response if x is dict and 'homeworks' in x), None)
         else:
-            print(type(response))
-            print(response)
             raise TypeError('Ответ API не является ни словарем, ни списком')
     else:
         result = response.get('homeworks', None)
