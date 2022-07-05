@@ -2,12 +2,12 @@ import os
 import sys
 import time
 import json
+import logging
+from logging import StreamHandler, Formatter
 
 import requests
 import telegram
 from dotenv import load_dotenv
-import logging
-from logging import StreamHandler, Formatter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
